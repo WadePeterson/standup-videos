@@ -8,5 +8,6 @@
     "**/.DS_Store": true,
     "node_modules": true,
     "dist": true
-  }
+  },
+  "beautify.tabSize": 2
 }
