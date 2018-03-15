@@ -21,22 +21,34 @@ export default class App extends React.PureComponent<{}, AppState> {
           document.title = video.name;
         } catch (e) { }
 
-        this.setState({ video, volume: video.fadeIn ? 0 : maxVolume });
+        this.setState({ video });
       }
     });
   }
 
   onStart = () => {
-    const video = this.state.video as Videos.Video;
-    const { fadeIn, fadeOut } = video;
+    if (!this.state.video) {
+      return;
+    }
+
+    let { fadeIn, fadeOut, startSeconds, endSeconds } = this.state.video;
+    let startDelay = (startSeconds - Math.floor(startSeconds)) * 1000;
+    startSeconds = Math.floor(startSeconds);
 
     if (fadeIn) {
-      this.fade(true, fadeIn);
+      setTimeout(() => this.fade(true, fadeIn as number), startDelay);
     }
 
     if (fadeOut) {
-      const playTime = (video.endSeconds - video.startSeconds) * 1000;
-      setTimeout(() => this.fade(false, fadeOut), playTime - fadeOut * 1000);
+      const playTime = (endSeconds - startSeconds) * 1000;
+      setTimeout(() => this.fade(false, fadeOut as number), playTime - fadeOut * 1000);
+    }
+
+    const volume = (fadeIn || startDelay > 0) ? 0 : maxVolume;
+    this.setState({ volume });
+
+    if (startDelay && !fadeIn) {
+      setTimeout(() => this.setState({ volume: maxVolume }), startDelay);
     }
   }
 
@@ -77,12 +89,14 @@ export default class App extends React.PureComponent<{}, AppState> {
       volume: this.state.volume,
       height: window.innerHeight - 16,
       width: window.innerWidth,
-      youtubeConfig: {
-        playerVars: {
-          start: video.startSeconds,
-          end: video.endSeconds
-        },
-        preload: false
+      config: {
+        youtube: {
+          playerVars: {
+            start: Math.floor(video.startSeconds),
+            end: video.endSeconds
+          },
+          preload: false
+        }
       },
       onStart: this.onStart
     };
