@@ -2,6 +2,7 @@ import * as Firebase from './firebase';
 
 export interface VideoNode {
   name: string;
+  disabled?: boolean;
   startSeconds: number;
   endSeconds: number;
   fadeIn?: number;
@@ -28,7 +29,7 @@ export function getVideoUrl(video: Video) {
 
 export async function getCurrentVideo() {
   const videosNode = await Firebase.fetchValue<Firebase.MapNode<VideoNode>>('videos');
-  const videos = Firebase.toList(videosNode).sort((a, b) => (b.lastPlayed || 0) - (a.lastPlayed || 0));
+  const videos = Firebase.toList(videosNode).sort((a, b) => (b.lastPlayed || 0) - (a.lastPlayed || 0)).filter(video => !video.disabled);
 
   if (videos.length === 0) {
     return null;

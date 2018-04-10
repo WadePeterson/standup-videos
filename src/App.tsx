@@ -33,15 +33,18 @@ export default class App extends React.PureComponent<{}, AppState> {
 
     let { fadeIn, fadeOut, startSeconds, endSeconds } = this.state.video;
     let startDelay = (startSeconds - Math.floor(startSeconds)) * 1000;
-    startSeconds = Math.floor(startSeconds);
+    const playTime = (endSeconds - startSeconds) * 1000;
 
     if (fadeIn) {
       setTimeout(() => this.fade(true, fadeIn as number), startDelay);
     }
 
     if (fadeOut) {
-      const playTime = (endSeconds - startSeconds) * 1000;
       setTimeout(() => this.fade(false, fadeOut as number), playTime - fadeOut * 1000);
+    }
+
+    if (playTime % 1000 !== 0) {
+      setTimeout(() => this.setState({ volume: 0 }), playTime);
     }
 
     const volume = (fadeIn || startDelay > 0) ? 0 : maxVolume;
@@ -80,8 +83,6 @@ export default class App extends React.PureComponent<{}, AppState> {
       return <div>Loading...</div>;
     }
 
-    console.log(this.state.volume)
-
     const playerProps: ReactPlayerProps = {
       playing: true,
       controls: true,
@@ -93,7 +94,7 @@ export default class App extends React.PureComponent<{}, AppState> {
         youtube: {
           playerVars: {
             start: Math.floor(video.startSeconds),
-            end: video.endSeconds
+            end: Math.ceil(video.endSeconds)
           },
           preload: false
         }
